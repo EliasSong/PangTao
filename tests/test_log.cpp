@@ -1,14 +1,18 @@
 #include <iostream>
 #include <stdio.h>
 #include "../src/log.h"
+#include "../src/util.h"
 using namespace std;
 
-int main(){
-    cout<<"helloworld"<<endl;
-    PangTao::Logger::ptr logger(new PangTao::Logger);
+int main()
+{
+    cout << "helloworld" << endl;
+    auto logger = PangTao::LoggerManager::getInstance()->getRoot();
+    logger->setLevel(PangTao::LogLevel::INFO);
     logger->addAppender(PangTao::LogAppender::ptr(new PangTao::StdoutLogAppender));
-    PangTao::LogEvent::ptr event(new PangTao::LogEvent(__FILE__,__LINE__,0,1,2,time(0)));
-    event->getSS()<<"hello log";
-    logger->log(PangTao::LogLevel::DEBUG,event);
+    logger->addAppender(PangTao::LogAppender::ptr(new PangTao::FileLogAppender("./log.txt")));
+    PangTao::PANGTAO_LOG_DEBUG(logger,"hello pangtao");
+    PangTao::PANGTAO_LOG_INFO(logger,"hello pangtao");
+    PangTao::PANGTAO_LOG_WARN(logger,"hello pangtao");
     return 0;
 }

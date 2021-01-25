@@ -10,34 +10,11 @@
 #include <unordered_map>
 #include <functional>
 #include <time.h>
-//#include <stringstreams>
+#include "util.h"
+
 namespace PangTao
 {
     class Logger;
-    class LogEvent
-    {
-    public:
-        typedef std::shared_ptr<LogEvent> ptr;
-        LogEvent(const char *file, int32_t line, uint32_t elapse, uint32_t thread_id, uint32_t fiber_id, uint64_t time);
-        const char *getFile() const { return m_file; }
-        int32_t getLine() const { return m_line; }
-        uint32_t getElapse() const { return m_elapse; }
-        uint32_t getThreadId() const { return m_threadId; }
-        uint32_t getFiberId() const { return m_fiberId; }
-        uint64_t getTime() const { return m_time; }
-        const std::string getContent() const { return m_ss.str(); }
-        std::stringstream& getSS() { return m_ss; }
-
-    private:
-        const char *m_file = nullptr;
-        int32_t m_line;
-        uint32_t m_elapse = 0;
-        uint32_t m_threadId = 0;
-        uint32_t m_fiberId = 0;
-        time_t m_time = 0;
-        std::stringstream m_ss;
-    };
-
     class LogLevel
     {
     public:
@@ -52,6 +29,44 @@ namespace PangTao
         };
         static const char *toString(LogLevel::Level level);
     };
+    class LogEvent
+    {
+    public:
+        typedef std::shared_ptr<LogEvent> ptr;
+        LogEvent(std::shared_ptr<Logger> logger, LogLevel::Level level, const char *file, int32_t line, uint32_t elapse, uint32_t thread_id, uint32_t coroutine_id, uint64_t time);
+        const char *getFile() const { return m_file; }
+        int32_t getLine() const { return m_line; }
+        uint32_t getElapse() const { return m_elapse; }
+        uint32_t getThreadId() const { return m_threadId; }
+        uint32_t getCoroutineId() const { return m_coroutineId; }
+        uint64_t getTime() const { return m_time; }
+        const std::string getContent() const { return m_ss.str(); }
+        std::stringstream &getSS() { return m_ss; }
+        LogLevel::Level getLevel() const { return m_level; }
+        std::shared_ptr<Logger> getLogger() const { return m_logger; }
+
+    private:
+        const char *m_file = nullptr;
+        int32_t m_line;
+        uint32_t m_elapse = 0;
+        uint32_t m_threadId = 0;
+        uint32_t m_coroutineId = 0;
+        time_t m_time = 0;
+        std::stringstream m_ss;
+        std::shared_ptr<Logger> m_logger;
+        LogLevel::Level m_level;
+    };
+
+    // class LogEventWrap
+    // {
+    // public:
+    //     LogEventWrap(LogEvent::ptr e);
+    //     ~LogEventWrap();
+    //     std::stringstream &getSS();
+
+    // private:
+    //     LogEvent::ptr m_event;
+    // };
 
     class LogFormatter
     {
@@ -92,7 +107,7 @@ namespace PangTao
         typedef std::shared_ptr<Logger> ptr;
 
         Logger(const std::string &name = "root");
-        void log(LogLevel::Level level, LogEvent::ptr event);
+        void log(LogEvent::ptr event);
         void debug(LogEvent::ptr event);
         void info(LogEvent::ptr event);
         void warn(LogEvent::ptr event);
@@ -131,4 +146,41 @@ namespace PangTao
         std::string m_filename;
         std::ofstream m_filestream;
     };
+    class LoggerManager
+    {
+    public:
+        typedef std::shared_ptr<LoggerManager> ptr;
+        static ptr getInstance()
+        {
+            if (instance == nullptr)
+            {
+                instance = std::shared_ptr<LoggerManager>(new LoggerManager());
+            }
+            return instance;
+        }
+        Logger::ptr getRoot() const
+        {
+            return m_root;
+        }
+        Logger::ptr getLogger(const std::string &str);
+        void registerLogger(const std::string& loggerName,Logger::ptr logger);
+
+    private:
+        LoggerManager()
+        {
+            m_root = std::shared_ptr<Logger>(new Logger);
+        };
+        LoggerManager(const LoggerManager &) = delete;
+        LoggerManager(const LoggerManager &&) = delete;
+        LoggerManager &operator=(const LoggerManager &) = delete;
+        static std::shared_ptr<LoggerManager> instance;
+        std::unordered_map<std::string, Logger::ptr> m_loggers;
+        Logger::ptr m_root;
+    };
+    void PANGTAO_LOG_DEBUG(Logger::ptr logger, std::string s);
+    void PANGTAO_LOG_INFO(Logger::ptr logger, std::string s);
+    void PANGTAO_LOG_WARN(Logger::ptr logger, std::string s);
+    void PANGTAO_LOG_ERROR(Logger::ptr logger, std::string s);
+    void PANGTAO_LOG_FATAL(Logger::ptr logger, std::string s);
+
 } // namespace PangTao

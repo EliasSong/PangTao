@@ -1,6 +1,43 @@
 #include "log.h"
 namespace PangTao
 {
+    LoggerManager::ptr LoggerManager::instance = nullptr;
+
+    void PANGTAO_LOG_DEBUG(Logger::ptr logger, std::string s)
+    {
+        LogEvent::ptr event(new LogEvent(logger, PangTao::LogLevel::DEBUG, __FILE__, __LINE__, 0, 0, 0, time(0)));
+        event->getSS() << s;
+        logger->log(event);
+    }
+
+    void PANGTAO_LOG_INFO(Logger::ptr logger, std::string s)
+    {
+        LogEvent::ptr event(new LogEvent(logger, PangTao::LogLevel::INFO, __FILE__, __LINE__, 0, 0, 0, time(0)));
+        event->getSS() << s;
+        logger->log(event);
+    }
+
+    void PANGTAO_LOG_WARN(Logger::ptr logger, std::string s)
+    {
+        LogEvent::ptr event(new LogEvent(logger, PangTao::LogLevel::WARN, __FILE__, __LINE__, 0, 0, 0, time(0)));
+        event->getSS() << s;
+        logger->log(event);
+    }
+
+    void PANGTAO_LOG_FATAL(Logger::ptr logger, std::string s)
+    {
+        LogEvent::ptr event(new LogEvent(logger, PangTao::LogLevel::FATAL, __FILE__, __LINE__, 0, 0, 0, time(0)));
+        event->getSS() << s;
+        logger->log(event);
+    }
+
+    void PANGTAO_LOG_ERROR(Logger::ptr logger, std::string s)
+    {
+        LogEvent::ptr event(new LogEvent(logger, PangTao::LogLevel::ERROR, __FILE__, __LINE__, 0, 0, 0, time(0)));
+        event->getSS() << s;
+        logger->log(event);
+    }
+
     const char *LogLevel::toString(LogLevel::Level level)
     {
         switch (level)
@@ -53,10 +90,10 @@ namespace PangTao
             os << event->getElapse();
         }
     };
-    class NameFormatItem : public LogFormatter::FormatItem
+    class UsernameFormatItem : public LogFormatter::FormatItem
     {
     public:
-        NameFormatItem(const std::string &str = "") {}
+        UsernameFormatItem(const std::string &str = "") {}
         void format(std::ostream &os, std::shared_ptr<Logger> logger, LogLevel::Level level, LogEvent::ptr event) override
         {
             os << logger->getName();
@@ -71,13 +108,13 @@ namespace PangTao
             os << event->getThreadId();
         }
     };
-    class FiberIdFormatItem : public LogFormatter::FormatItem
+    class CoroutineIdFormatItem : public LogFormatter::FormatItem
     {
     public:
-        FiberIdFormatItem(const std::string &str = "") {}
+        CoroutineIdFormatItem(const std::string &str = "") {}
         void format(std::ostream &os, std::shared_ptr<Logger> logger, LogLevel::Level level, LogEvent::ptr event) override
         {
-            os << event->getFiberId();
+            os << event->getCoroutineId();
         }
     };
     class DateTimeFormatItem : public LogFormatter::FormatItem
@@ -86,7 +123,8 @@ namespace PangTao
         DateTimeFormatItem(const std::string &format = "%Y-%m-%d %H:%M:%S")
         {
             m_format = format;
-            if(m_format.empty()){
+            if (m_format.empty())
+            {
                 m_format = "%Y-%m-%d %H:%M:%S";
             }
         }
@@ -94,10 +132,10 @@ namespace PangTao
         {
             struct tm tm;
             time_t time = event->getTime();
-            localtime_r(&time,&tm);
+            localtime_r(&time, &tm);
             char buf[64];
-            strftime(buf,sizeof(buf),m_format.c_str(),&tm);
-            
+            strftime(buf, sizeof(buf), m_format.c_str(), &tm);
+
             os << buf;
         }
 
@@ -143,19 +181,32 @@ namespace PangTao
     private:
         std::string m_string;
     };
+    class TabFormatItem : public LogFormatter::FormatItem
+    {
+    public:
+        TabFormatItem(const std::string &str = "") {}
+        void format(std::ostream &os, std::shared_ptr<Logger> logger, LogLevel::Level level, LogEvent::ptr event) override
+        {
+            os << "\t";
+        }
 
-    LogEvent::LogEvent(const char *file, int32_t line, uint32_t elapse, uint32_t thread_id, uint32_t fiber_id, uint64_t time)
+    private:
+        std::string m_string;
+    };
+    LogEvent::LogEvent(std::shared_ptr<Logger> logger, LogLevel::Level level, const char *file, int32_t line, uint32_t elapse, uint32_t thread_id, uint32_t coroutine_id, uint64_t time)
     {
         m_file = file;
         m_line = line;
         m_elapse = elapse;
         m_threadId = thread_id;
-        m_fiberId = fiber_id;
+        m_coroutineId = coroutine_id;
         m_time = time;
+        m_logger = logger;
+        m_level = level;
     }
     Logger::Logger(const std::string &name) : m_name(name), m_level(LogLevel::DEBUG)
     {
-        m_formatter.reset(new LogFormatter("%d [%p] <%f:%l> %m %n"));
+        m_formatter.reset(new LogFormatter("%d%T%t[%F]%T[%p] %f [%c]:%l%T%m %n"));
     }
     void Logger::addAppender(LogAppender::ptr appender)
     {
@@ -176,40 +227,41 @@ namespace PangTao
             }
         }
     }
-    void Logger::log(LogLevel::Level level, LogEvent::ptr event)
+    void Logger::log(LogEvent::ptr event)
     {
-        if (level >= m_level)
+        if (event->getLevel() >= m_level)
         {
             auto self = shared_from_this();
             for (auto &i : m_appenders)
             {
-                i->log(self, level, event);
+                i->log(self, event->getLevel(), event);
             }
         }
     }
-    void Logger::debug(LogEvent::ptr event)
-    {
-        log(LogLevel::DEBUG, event);
-    }
-    void Logger::info(LogEvent::ptr event)
-    {
-        log(LogLevel::INFO, event);
-    }
-    void Logger::warn(LogEvent::ptr event)
-    {
-        log(LogLevel::WARN, event);
-    }
-    void Logger::fatal(LogEvent::ptr event)
-    {
-        log(LogLevel::FATAL, event);
-    }
-    void Logger::error(LogEvent::ptr event)
-    {
-        log(LogLevel::ERROR, event);
-    }
+    // void Logger::debug(LogEvent::ptr event)
+    // {
+    //     log(LogLevel::DEBUG, event);
+    // }
+    // void Logger::info(LogEvent::ptr event)
+    // {
+    //     log(LogLevel::INFO, event);
+    // }
+    // void Logger::warn(LogEvent::ptr event)
+    // {
+    //     log(LogLevel::WARN, event);
+    // }
+    // void Logger::fatal(LogEvent::ptr event)
+    // {
+    //     log(LogLevel::FATAL, event);
+    // }
+    // void Logger::error(LogEvent::ptr event)
+    // {
+    //     log(LogLevel::ERROR, event);
+    // }
 
     FileLogAppender::FileLogAppender(const std::string &filename) : m_filename(filename)
     {
+        m_filestream.open(m_filename);
     }
     void FileLogAppender::log(std::shared_ptr<Logger> logger, LogLevel::Level level, LogEvent::ptr event)
     {
@@ -229,7 +281,6 @@ namespace PangTao
     }
     void StdoutLogAppender::log(std::shared_ptr<Logger> logger, LogLevel::Level level, LogEvent::ptr event)
     {
-        std::cout<<"stdstd"<<std::endl;
         if (level >= m_level)
         {
             std::cout << m_formatter->format(logger, level, event);
@@ -303,9 +354,11 @@ namespace PangTao
                     }
                 }
                 ++n;
-                if(n==m_pattern.size()){
-                    if(str.empty()){
-                        str=m_pattern.substr(i+1);
+                if (n == m_pattern.size())
+                {
+                    if (str.empty())
+                    {
+                        str = m_pattern.substr(i + 1);
                     }
                 }
             }
@@ -317,23 +370,13 @@ namespace PangTao
                     nstr.clear();
                 }
                 vec.push_back(std::make_tuple(str, fmt, 1));
-                i = n-1;
+                i = n - 1;
             }
             else if (fmt_status == 1)
             {
                 std::cout << "Pattern parse error: " << m_pattern << " - " << m_pattern.substr(i) << std::endl;
                 vec.push_back(std::make_tuple("<<Pattern Error>>", fmt, 0));
             }
-            // else if (fmt_status == 2)
-            // {
-            //     if (!nstr.empty())
-            //     {
-            //         vec.push_back(std::make_tuple(nstr, "", 0));
-            //         nstr.clear();
-            //     }
-            //     vec.push_back(std::make_tuple(str, fmt, 1));
-            //     i = n;
-            // }
         }
         if (!nstr.empty())
         {
@@ -343,12 +386,14 @@ namespace PangTao
             {"m", [](const std::string &fmt) { return FormatItem::ptr(new MessageFormatItem(fmt)); }},
             {"p", [](const std::string &fmt) { return FormatItem::ptr(new LevelFormatItem(fmt)); }},
             {"r", [](const std::string &fmt) { return FormatItem::ptr(new ElapseFormatItem(fmt)); }},
-            {"c", [](const std::string &fmt) { return FormatItem::ptr(new NameFormatItem(fmt)); }},
+            {"c", [](const std::string &fmt) { return FormatItem::ptr(new UsernameFormatItem(fmt)); }},
             {"t", [](const std::string &fmt) { return FormatItem::ptr(new ThreadIdFormatItem(fmt)); }},
             {"n", [](const std::string &fmt) { return FormatItem::ptr(new NewLineFormatItem(fmt)); }},
             {"d", [](const std::string &fmt) { return FormatItem::ptr(new DateTimeFormatItem(fmt)); }},
             {"f", [](const std::string &fmt) { return FormatItem::ptr(new FilenameFormatItem(fmt)); }},
             {"l", [](const std::string &fmt) { return FormatItem::ptr(new LineFormatItem(fmt)); }},
+            {"T", [](const std::string &fmt) { return FormatItem::ptr(new TabFormatItem(fmt)); }},
+            {"F", [](const std::string &fmt) { return FormatItem::ptr(new CoroutineIdFormatItem(fmt)); }},
         };
         for (auto &i : vec)
         {
@@ -368,8 +413,25 @@ namespace PangTao
                     m_items.push_back(it->second(std::get<1>(i)));
                 }
             }
-            std::cout << std::get<0>(i) << " - " << std::get<1>(i) << " - " << std::get<2>(i) << std::endl;
+            //std::cout << std::get<0>(i) << " - " << std::get<1>(i) << " - " << std::get<2>(i) << std::endl;
         }
+    }
+    Logger::ptr LoggerManager::getLogger(const std::string &str)
+    {
+        if (m_loggers.find(str) == m_loggers.end())
+        {
+            std::cerr << "Logger unexist" << std::endl;
+            return nullptr;
+        }
+        return m_loggers[str];
+    }
+    void LoggerManager::registerLogger(const std::string &loggerName, Logger::ptr logger)
+    {
+        if (m_loggers.find(loggerName) != m_loggers.end())
+        {
+            std::cerr << "Logger existed" << std::endl;
+        }
+        m_loggers[loggerName] = logger;
     }
 
 } // namespace PangTao

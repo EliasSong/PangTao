@@ -1,0 +1,2 @@
+2021-01-25 07:28:33	0[0]	[INFO] /home/eliassong/PangTao/src/log.cpp [root]:15	hello pangtao 
+2021-01-25 07:28:33	0[0]	[WARN] /home/eliassong/PangTao/src/log.cpp [root]:22	hello pangtao 

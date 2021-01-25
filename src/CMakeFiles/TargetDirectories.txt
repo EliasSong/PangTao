@@ -1,3 +1,0 @@
-/home/eliassong/PangTao/src/CMakeFiles/rebuild_cache.dir
-/home/eliassong/PangTao/src/CMakeFiles/test.dir
-/home/eliassong/PangTao/src/CMakeFiles/edit_cache.dir

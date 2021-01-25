@@ -1,1 +1,9 @@
 bin/
+CMakeFiles/
+cmake_install.cmake
+CMakeCache.txt
+Makefile
+src/cmake_install.cmake
+src/CMakeCache.txt
+src/Makefile
+src/CMakeFiles/

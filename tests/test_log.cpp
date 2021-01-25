@@ -1,6 +1,6 @@
-#include "log.h"
 #include <iostream>
 #include <stdio.h>
+#include "../src/log.h"
 using namespace std;
 
 int main(){

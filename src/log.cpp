@@ -206,6 +206,7 @@ namespace PangTao
     }
     Logger::Logger(const std::string &name) : m_name(name), m_level(LogLevel::DEBUG)
     {
+        
         m_formatter.reset(new LogFormatter("%d%T%t[%F]%T[%p] %f [%c]:%l%T%m %n"));
     }
     void Logger::addAppender(LogAppender::ptr appender)
@@ -286,7 +287,7 @@ namespace PangTao
             std::cout << m_formatter->format(logger, level, event);
         }
     };
-
+    
     LogFormatter::LogFormatter(const std::string &pattern) : m_pattern(pattern)
     {
         init();

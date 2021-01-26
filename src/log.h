@@ -163,12 +163,11 @@ namespace PangTao
             return m_root;
         }
         Logger::ptr getLogger(const std::string &str);
-        void registerLogger(const std::string& loggerName,Logger::ptr logger);
+        void registerLogger(const std::string &loggerName, Logger::ptr logger);
 
     private:
-        LoggerManager()
-        {
-            m_root = std::shared_ptr<Logger>(new Logger);
+        LoggerManager(){
+            m_root_init();
         };
         LoggerManager(const LoggerManager &) = delete;
         LoggerManager(const LoggerManager &&) = delete;
@@ -176,6 +175,12 @@ namespace PangTao
         static std::shared_ptr<LoggerManager> instance;
         std::unordered_map<std::string, Logger::ptr> m_loggers;
         Logger::ptr m_root;
+        void m_root_init()
+        {
+            m_root = std::shared_ptr<Logger>(new Logger);
+            m_root->addAppender(LogAppender::ptr(new StdoutLogAppender));
+            m_root->setLevel(LogLevel::DEBUG);
+        }
     };
     void PANGTAO_LOG_DEBUG(Logger::ptr logger, std::string s);
     void PANGTAO_LOG_INFO(Logger::ptr logger, std::string s);

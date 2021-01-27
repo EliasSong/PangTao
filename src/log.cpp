@@ -2,38 +2,40 @@
 namespace PangTao
 {
     LoggerManager::ptr LoggerManager::instance = nullptr;
-
+    Logger::ptr PANGTAO_ROOT_LOGGER(){
+        return LoggerManager::getInstance()->getRoot();
+    }
     void PANGTAO_LOG_DEBUG(Logger::ptr logger, std::string s)
     {
-        LogEvent::ptr event(new LogEvent(logger, PangTao::LogLevel::DEBUG, __FILE__, __LINE__, 0, 0, 0, time(0)));
+        LogEvent::ptr event(new LogEvent(logger, LogLevel::DEBUG, __FILE__, __LINE__, 0, GetThreadId(), GetCoroutineId(), time(0)));
         event->getSS() << s;
         logger->log(event);
     }
 
     void PANGTAO_LOG_INFO(Logger::ptr logger, std::string s)
     {
-        LogEvent::ptr event(new LogEvent(logger, PangTao::LogLevel::INFO, __FILE__, __LINE__, 0, 0, 0, time(0)));
+        LogEvent::ptr event(new LogEvent(logger, LogLevel::INFO, __FILE__, __LINE__, 0, GetThreadId(), GetCoroutineId(), time(0)));
         event->getSS() << s;
         logger->log(event);
     }
 
     void PANGTAO_LOG_WARN(Logger::ptr logger, std::string s)
     {
-        LogEvent::ptr event(new LogEvent(logger, PangTao::LogLevel::WARN, __FILE__, __LINE__, 0, 0, 0, time(0)));
+        LogEvent::ptr event(new LogEvent(logger, LogLevel::WARN, __FILE__, __LINE__, 0, GetThreadId(), GetCoroutineId(), time(0)));
         event->getSS() << s;
         logger->log(event);
     }
 
     void PANGTAO_LOG_FATAL(Logger::ptr logger, std::string s)
     {
-        LogEvent::ptr event(new LogEvent(logger, PangTao::LogLevel::FATAL, __FILE__, __LINE__, 0, 0, 0, time(0)));
+        LogEvent::ptr event(new LogEvent(logger, LogLevel::FATAL, __FILE__, __LINE__, 0, GetThreadId(), GetCoroutineId(), time(0)));
         event->getSS() << s;
         logger->log(event);
     }
 
     void PANGTAO_LOG_ERROR(Logger::ptr logger, std::string s)
     {
-        LogEvent::ptr event(new LogEvent(logger, PangTao::LogLevel::ERROR, __FILE__, __LINE__, 0, 0, 0, time(0)));
+        LogEvent::ptr event(new LogEvent(logger, LogLevel::ERROR, __FILE__, __LINE__, 0, GetThreadId(), GetCoroutineId(), time(0)));
         event->getSS() << s;
         logger->log(event);
     }
@@ -206,7 +208,7 @@ namespace PangTao
     }
     Logger::Logger(const std::string &name) : m_name(name), m_level(LogLevel::DEBUG)
     {
-        
+       
         m_formatter.reset(new LogFormatter("%d%T%t[%F]%T[%p] %f [%c]:%l%T%m %n"));
     }
     void Logger::addAppender(LogAppender::ptr appender)
@@ -239,26 +241,12 @@ namespace PangTao
             }
         }
     }
-    // void Logger::debug(LogEvent::ptr event)
-    // {
-    //     log(LogLevel::DEBUG, event);
-    // }
-    // void Logger::info(LogEvent::ptr event)
-    // {
-    //     log(LogLevel::INFO, event);
-    // }
-    // void Logger::warn(LogEvent::ptr event)
-    // {
-    //     log(LogLevel::WARN, event);
-    // }
-    // void Logger::fatal(LogEvent::ptr event)
-    // {
-    //     log(LogLevel::FATAL, event);
-    // }
-    // void Logger::error(LogEvent::ptr event)
-    // {
-    //     log(LogLevel::ERROR, event);
-    // }
+    void Logger::setFormatter(const std::string& formatter){
+        m_formatter.reset(new LogFormatter(formatter));
+        for(auto &i:m_appenders){
+            i->setFormatter(m_formatter);
+        }
+    }
 
     FileLogAppender::FileLogAppender(const std::string &filename) : m_filename(filename)
     {

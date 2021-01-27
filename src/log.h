@@ -11,6 +11,7 @@
 #include <functional>
 #include <time.h>
 #include "util.h"
+#include "thread.h"
 
 namespace PangTao
 {
@@ -99,6 +100,7 @@ namespace PangTao
     protected:
         LogLevel::Level m_level = LogLevel::DEBUG;
         LogFormatter::ptr m_formatter;
+        Mutex m_mutex;
     };
 
     class Logger : public std::enable_shared_from_this<Logger>
@@ -117,6 +119,7 @@ namespace PangTao
         void delAppender(LogAppender::ptr appender);
         LogLevel::Level getLevel() const { return m_level; }
         void setLevel(LogLevel::Level level) { m_level = level; }
+        void setFormatter(const std::string& fomatter);
         const std::string &getName() const { return m_name; }
 
     private:
@@ -187,5 +190,6 @@ namespace PangTao
     void PANGTAO_LOG_WARN(Logger::ptr logger, std::string s);
     void PANGTAO_LOG_ERROR(Logger::ptr logger, std::string s);
     void PANGTAO_LOG_FATAL(Logger::ptr logger, std::string s);
+    Logger::ptr PANGTAO_ROOT_LOGGER();
 
 } // namespace PangTao

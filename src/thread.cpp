@@ -1,6 +1,6 @@
 #include "thread.h"
 #include "util.h"
-
+#include "log.h"
 namespace PangTao
 {
     static thread_local Thread *t_thread = nullptr;

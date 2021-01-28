@@ -16,7 +16,7 @@ int main()
         PangTao::PANGTAO_LOG_INFO(PangTao::PANGTAO_ROOT_LOGGER(), old_val + " -> " + new_val);
         PangTao::PANGTAO_ROOT_LOGGER()->setFormatter(new_val);
     });
-    formatter_configure->setVal("%d%T%t[%F]%T[%p] %f [%c]:%l%T%m %n");
+    formatter_configure->setVal("%d%T%m %n");
     PangTao::PANGTAO_LOG_INFO(PangTao::PANGTAO_ROOT_LOGGER(), formatter_configure->getName() + " " + formatter_configure->toString() + " " + formatter_configure->getDesc());
     return 0;
 }

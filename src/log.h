@@ -94,13 +94,14 @@ namespace PangTao
         typedef std::shared_ptr<LogAppender> ptr;
         virtual ~LogAppender(){};
         virtual void log(std::shared_ptr<Logger> logger, LogLevel::Level level, LogEvent::ptr event) = 0;
-        void setFormatter(LogFormatter::ptr formatter) { m_formatter = formatter; }
-        LogFormatter::ptr getFormatter() const { return m_formatter; }
-
+        void setFormatter(LogFormatter::ptr formatter);
+        LogFormatter::ptr getFormatter();
+        Mutex m_mutex;
+        //const Mutex& getMutex(){return m_mutex;}
     protected:
         LogLevel::Level m_level = LogLevel::DEBUG;
         LogFormatter::ptr m_formatter;
-        Mutex m_mutex;
+        //Mutex m_mutex;
     };
 
     class Logger : public std::enable_shared_from_this<Logger>
@@ -110,16 +111,16 @@ namespace PangTao
 
         Logger(const std::string &name = "root");
         void log(LogEvent::ptr event);
-        void debug(LogEvent::ptr event);
-        void info(LogEvent::ptr event);
-        void warn(LogEvent::ptr event);
-        void fatal(LogEvent::ptr event);
-        void error(LogEvent::ptr event);
+        // void debug(LogEvent::ptr event);
+        // void info(LogEvent::ptr event);
+        // void warn(LogEvent::ptr event);
+        // void fatal(LogEvent::ptr event);
+        // void error(LogEvent::ptr event);
         void addAppender(LogAppender::ptr appender);
         void delAppender(LogAppender::ptr appender);
         LogLevel::Level getLevel() const { return m_level; }
         void setLevel(LogLevel::Level level) { m_level = level; }
-        void setFormatter(const std::string& fomatter);
+        void setFormatter(const std::string &fomatter);
         const std::string &getName() const { return m_name; }
 
     private:
@@ -127,6 +128,7 @@ namespace PangTao
         LogLevel::Level m_level;
         std::list<LogAppender::ptr> m_appenders;
         LogFormatter::ptr m_formatter;
+        Mutex m_mutex;
     };
 
     class StdoutLogAppender : public LogAppender
@@ -157,7 +159,11 @@ namespace PangTao
         {
             if (instance == nullptr)
             {
-                instance = std::shared_ptr<LoggerManager>(new LoggerManager());
+                Mutex::Lock lock(m_mutex);
+                if (instance == nullptr)
+                {
+                    instance = std::shared_ptr<LoggerManager>(new LoggerManager());
+                }
             }
             return instance;
         }
@@ -169,7 +175,8 @@ namespace PangTao
         void registerLogger(const std::string &loggerName, Logger::ptr logger);
 
     private:
-        LoggerManager(){
+        LoggerManager()
+        {
             m_root_init();
         };
         LoggerManager(const LoggerManager &) = delete;
@@ -178,6 +185,7 @@ namespace PangTao
         static std::shared_ptr<LoggerManager> instance;
         std::unordered_map<std::string, Logger::ptr> m_loggers;
         Logger::ptr m_root;
+        static Mutex m_mutex;
         void m_root_init()
         {
             m_root = std::shared_ptr<Logger>(new Logger);

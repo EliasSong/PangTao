@@ -1,8 +1,9 @@
 #include "log.h"
 namespace PangTao
 {
-    LoggerManager::ptr LoggerManager::instance = nullptr;
-    Logger::ptr PANGTAO_ROOT_LOGGER(){
+    
+    Logger::ptr PANGTAO_ROOT_LOGGER()
+    {
         return LoggerManager::getInstance()->getRoot();
     }
     void PANGTAO_LOG_DEBUG(Logger::ptr logger, std::string s)
@@ -208,11 +209,12 @@ namespace PangTao
     }
     Logger::Logger(const std::string &name) : m_name(name), m_level(LogLevel::DEBUG)
     {
-       
+
         m_formatter.reset(new LogFormatter("%d%T%t[%F]%T[%p] %f [%c]:%l%T%m %n"));
     }
     void Logger::addAppender(LogAppender::ptr appender)
     {
+        Mutex::Lock lock(m_mutex);
         if (!appender->getFormatter())
         {
             appender->setFormatter(m_formatter);
@@ -221,6 +223,7 @@ namespace PangTao
     }
     void Logger::delAppender(LogAppender::ptr appender)
     {
+        Mutex::Lock lock(m_mutex);
         for (auto i = m_appenders.begin(); i != m_appenders.end(); ++i)
         {
             if (*i = appender)
@@ -232,6 +235,7 @@ namespace PangTao
     }
     void Logger::log(LogEvent::ptr event)
     {
+        Mutex::Lock lock(m_mutex);
         if (event->getLevel() >= m_level)
         {
             auto self = shared_from_this();
@@ -241,26 +245,41 @@ namespace PangTao
             }
         }
     }
-    void Logger::setFormatter(const std::string& formatter){
+    void Logger::setFormatter(const std::string &formatter)
+    {
+        Mutex::Lock lock(m_mutex);
         m_formatter.reset(new LogFormatter(formatter));
-        for(auto &i:m_appenders){
+        for (auto &i : m_appenders)
+        {
             i->setFormatter(m_formatter);
         }
+    }
+    void LogAppender::setFormatter(LogFormatter::ptr formatter)
+    {
+        Mutex::Lock lock(m_mutex);
+        m_formatter = formatter;
+    }
+    LogFormatter::ptr LogAppender::getFormatter()
+    {
+        //Mutex::Lock lock(m_mutex);
+        return m_formatter;
     }
 
     FileLogAppender::FileLogAppender(const std::string &filename) : m_filename(filename)
     {
-        m_filestream.open(m_filename);
+        reopen();
     }
     void FileLogAppender::log(std::shared_ptr<Logger> logger, LogLevel::Level level, LogEvent::ptr event)
     {
         if (level >= m_level)
         {
+            Mutex::Lock lock(m_mutex);
             m_filestream << m_formatter->format(logger, level, event);
         }
     };
     bool FileLogAppender::reopen()
     {
+        Mutex::Lock lock(m_mutex);
         if (m_filestream)
         {
             m_filestream.close();
@@ -272,10 +291,11 @@ namespace PangTao
     {
         if (level >= m_level)
         {
+            Mutex::Lock lock(m_mutex);
             std::cout << m_formatter->format(logger, level, event);
         }
     };
-    
+
     LogFormatter::LogFormatter(const std::string &pattern) : m_pattern(pattern)
     {
         init();
@@ -407,6 +427,7 @@ namespace PangTao
     }
     Logger::ptr LoggerManager::getLogger(const std::string &str)
     {
+        Mutex::Lock lock(m_mutex);
         if (m_loggers.find(str) == m_loggers.end())
         {
             std::cerr << "Logger unexist" << std::endl;
@@ -416,11 +437,14 @@ namespace PangTao
     }
     void LoggerManager::registerLogger(const std::string &loggerName, Logger::ptr logger)
     {
+        Mutex::Lock lock(m_mutex);
         if (m_loggers.find(loggerName) != m_loggers.end())
         {
             std::cerr << "Logger existed" << std::endl;
         }
         m_loggers[loggerName] = logger;
     }
+    Mutex LoggerManager::m_mutex;
+    LoggerManager::ptr LoggerManager::instance = nullptr;
 
 } // namespace PangTao

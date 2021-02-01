@@ -147,12 +147,11 @@ namespace PangTao
         static typename ConfigureVar<T>::ptr Lookup(const std::string &name)
         {
             RWMutex::ReadLock lock(GetMutex());
-            auto i = m_configureVarMap.find(name);
-            if (i == m_configureVarMap.end())
+            if (m_configureVarMap.find(name) == m_configureVarMap.end())
             {
                 return nullptr;
             }
-            return std::dynamic_pointer_cast<ConfigureVar<T>>(i->second);
+            return std::dynamic_pointer_cast<ConfigureVar<T>>(m_configureVarMap[name]);
         }
 
     private:

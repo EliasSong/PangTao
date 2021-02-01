@@ -5,6 +5,7 @@
 
 int main()
 {
+
     PangTao::ConfigureVar<std::string>::ptr formatter_configure =
         PangTao::Configure::Lookup((std::string) "%d%T%t[%F]%T[%p] %f [%c]:%l%T%m %n",
                                    "LOGGER_ROOT_FORMATTER",

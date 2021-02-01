@@ -170,12 +170,10 @@ namespace PangTao
         {
             currentCoroutine->m_state = EXCEPT;
             PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER(), "Coroutine main exception");
-        }
-        currentCoroutine->swapOut();
-        
-        //auto raw_ptr = currentCoroutine.get();
+        }  
+        auto raw_ptr = currentCoroutine.get();
         currentCoroutine.reset();
-        //raw_ptr->swapOut();
+        raw_ptr->swapOut();
     }
 
 } // namespace PangTao

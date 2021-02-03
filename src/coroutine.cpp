@@ -3,13 +3,14 @@
 #include <atomic>
 #include "coroutine.h"
 #include "configure.h"
+#include "scheduler.h"
 #include "log.h"
 #include "util.h"
 
 namespace PangTao
 {
-    static std::atomic<uint64_t> CoroutineId{0};
-    static std::atomic<uint64_t> CoroutineCount{0};
+    static std::atomic<uint64_t> CoroutineId = {0};
+    static std::atomic<uint64_t> CoroutineCount = {0};
     static thread_local Coroutine *main_coroutine = nullptr; //主协程
     static thread_local Coroutine::ptr main_thread_coroutine;
     class MallocStackAllocator
@@ -24,7 +25,7 @@ namespace PangTao
             return free(vp);
         }
     };
-    Coroutine::Coroutine(std::function<void()> cb, size_t stackSize)
+    Coroutine::Coroutine(std::function<void()> cb, size_t stackSize, bool useCaller)
     {
         m_id = ++CoroutineId;
         m_cb = cb;
@@ -38,7 +39,15 @@ namespace PangTao
         m_context.uc_link = nullptr;
         m_context.uc_stack.ss_sp = m_stack;
         m_context.uc_stack.ss_size = m_stackSize;
-        makecontext(&m_context, &Coroutine::Main, 0);
+        if (!useCaller)
+        {
+            makecontext(&m_context, &Coroutine::Main, 0);
+        }
+        else
+        {
+            makecontext(&m_context, &Coroutine::CallerMain, 0);
+        }
+
         PANGTAO_LOG_DEBUG(PANGTAO_ROOT_LOGGER(), "construct coroutine id: " + std::to_string(m_id));
     }
     Coroutine::Coroutine()
@@ -93,13 +102,31 @@ namespace PangTao
         SetThis(this);
         PANGTAO_ASSERT(m_state != EXEC);
         m_state == EXEC;
-        if (swapcontext(&(main_thread_coroutine->m_context), &m_context))
+        if (swapcontext(&(Scheduler::GetMainCoroutine()->m_context), &m_context))
         {
             PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER(), "swapcontext error");
         }
     }
     void Coroutine::swapOut()
     {
+        SetThis(Scheduler::GetMainCoroutine());
+        if (swapcontext(&m_context, &(Scheduler::GetMainCoroutine()->m_context)))
+        {
+            PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER(), "swapcontext error");
+        }
+    }
+    void Coroutine::call()
+    {
+        SetThis(this);
+        m_state = EXEC;
+        if (swapcontext(&(main_thread_coroutine->m_context), &m_context))
+        {
+            PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER(), "swapcontext error");
+        }
+    }
+    void Coroutine::back()
+    {
+
         SetThis(main_thread_coroutine.get());
         if (swapcontext(&m_context, &(main_thread_coroutine->m_context)))
         {
@@ -170,10 +197,37 @@ namespace PangTao
         {
             currentCoroutine->m_state = EXCEPT;
             PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER(), "Coroutine main exception");
-        }  
+        }
         auto raw_ptr = currentCoroutine.get();
         currentCoroutine.reset();
         raw_ptr->swapOut();
+        PANGTAO_ASSERT(false);
+        //std::cout<<"never"<<std::endl;
+    }
+    void Coroutine::CallerMain()
+    {
+        Coroutine::ptr currentCoroutine = GetThis();
+        PANGTAO_ASSERT(currentCoroutine);
+        try
+        {
+            currentCoroutine->m_cb();
+            currentCoroutine->m_cb = nullptr;
+            currentCoroutine->m_state = TERM;
+        }
+        catch (std::exception &e)
+        {
+            currentCoroutine->m_state = EXCEPT;
+            PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER(), "Coroutine main exception: " + std::string(e.what()));
+        }
+        catch (...)
+        {
+            currentCoroutine->m_state = EXCEPT;
+            PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER(), "Coroutine main exception");
+        }
+        auto raw_ptr = currentCoroutine.get();
+        currentCoroutine.reset();
+        raw_ptr->back();
+        PANGTAO_ASSERT(false);
     }
 
 } // namespace PangTao

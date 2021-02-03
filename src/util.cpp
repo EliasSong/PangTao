@@ -19,7 +19,7 @@ namespace PangTao
         char **strings = backtrace_symbols(array, s);
         if (!strings)
         {
-            PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER(), "backtrace synbols");
+            PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER, "backtrace synbols");
             return;
         }
         for (int i = skip; i < s; ++i)

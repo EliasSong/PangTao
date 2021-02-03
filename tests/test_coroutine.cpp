@@ -4,11 +4,11 @@
 
 void RunInCoroutine()
 {
-    PangTao::PANGTAO_LOG_INFO(PangTao::PANGTAO_ROOT_LOGGER(), "coroutine begin");
+    PANGTAO_LOG_INFO(PANGTAO_ROOT_LOGGER, "coroutine begin");
     PangTao::Coroutine::GetThis()->YieldToStatusHold();
-    PangTao::PANGTAO_LOG_INFO(PangTao::PANGTAO_ROOT_LOGGER(), "coroutine end");
+    PANGTAO_LOG_INFO(PANGTAO_ROOT_LOGGER, "coroutine end");
     PangTao::Coroutine::GetThis()->YieldToStatusHold();
-      PangTao::PANGTAO_LOG_INFO(PangTao::PANGTAO_ROOT_LOGGER(), "coroutine over");
+      PANGTAO_LOG_INFO(PANGTAO_ROOT_LOGGER, "coroutine over");
 }
 int main()
 {
@@ -17,12 +17,12 @@ int main()
 
         PangTao::Coroutine::ptr co(new PangTao::Coroutine(RunInCoroutine));
         co->swapIn();
-        PangTao::PANGTAO_LOG_INFO(PangTao::PANGTAO_ROOT_LOGGER(), "main back");
+        PANGTAO_LOG_INFO(PANGTAO_ROOT_LOGGER, "main back");
         co->swapIn();
-        PangTao::PANGTAO_LOG_INFO(PangTao::PANGTAO_ROOT_LOGGER(), "main back");
+        PANGTAO_LOG_INFO(PANGTAO_ROOT_LOGGER, "main back");
         co->swapIn();
     }
-    PangTao::PANGTAO_LOG_INFO(PangTao::PANGTAO_ROOT_LOGGER(), "main end");
+    PANGTAO_LOG_INFO(PANGTAO_ROOT_LOGGER, "main end");
 
     return 0;
 }

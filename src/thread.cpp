@@ -59,7 +59,7 @@ namespace PangTao
         int rt = pthread_create(&m_thread, nullptr, &Thread::run, this);
         if (rt)
         {
-            PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER(), "pthread_create thread failed. name = " + name);
+            PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER, "pthread_create thread failed. name = " + name);
             throw std::logic_error("pthread_create thread failed.");
         }
         m_semaphore.wait();
@@ -78,7 +78,7 @@ namespace PangTao
             int rt = pthread_join(m_thread, nullptr);
             if (rt)
             {
-                PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER(), "pthread_join thread failed. name = " + m_name);
+                PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER, "pthread_join thread failed. name = " + m_name);
                 throw std::logic_error("pthread_join thread failed.");
             }
             m_thread = 0;

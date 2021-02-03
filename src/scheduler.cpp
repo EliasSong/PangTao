@@ -115,7 +115,7 @@ namespace PangTao
     }
     void Scheduler::run()
     {
-        PANGTAO_LOG_INFO(PANGTAO_ROOT_LOGGER(), "run");
+        PANGTAO_LOG_INFO(PANGTAO_ROOT_LOGGER, "run");
         setThis();
         if (GetThreadId() != m_mainThreadId)
         {
@@ -209,7 +209,7 @@ namespace PangTao
                 }
                 if (idleCoroutine->getState() == Coroutine::State::TERM)
                 {
-                    PANGTAO_LOG_INFO(PANGTAO_ROOT_LOGGER(), "idel term");
+                    PANGTAO_LOG_INFO(PANGTAO_ROOT_LOGGER, "idel term");
                     break;
                 }
                 ++m_idleThreadCount;
@@ -224,7 +224,7 @@ namespace PangTao
     }
     void Scheduler::tickle()
     {
-        PANGTAO_LOG_INFO(PANGTAO_ROOT_LOGGER(), "tickle");
+        PANGTAO_LOG_INFO(PANGTAO_ROOT_LOGGER, "tickle");
     }
     bool Scheduler::stopping()
     {
@@ -233,7 +233,7 @@ namespace PangTao
     }
     void Scheduler::idle()
     {
-        PANGTAO_LOG_INFO(PANGTAO_ROOT_LOGGER(), "idle");
+        PANGTAO_LOG_INFO(PANGTAO_ROOT_LOGGER, "idle");
         while (!stopping())
         {
             Coroutine::YieldToStatusHold();

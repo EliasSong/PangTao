@@ -34,7 +34,7 @@ namespace PangTao
         m_stack = MallocStackAllocator::Alloc(m_stackSize);
         if (getcontext(&m_context))
         {
-            PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER(), "Getcontext Error");
+            PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER, "Getcontext Error");
         }
         m_context.uc_link = nullptr;
         m_context.uc_stack.ss_sp = m_stack;
@@ -48,7 +48,7 @@ namespace PangTao
             makecontext(&m_context, &Coroutine::CallerMain, 0);
         }
 
-        PANGTAO_LOG_DEBUG(PANGTAO_ROOT_LOGGER(), "construct coroutine id: " + std::to_string(m_id));
+        PANGTAO_LOG_DEBUG(PANGTAO_ROOT_LOGGER, "construct coroutine id: " + std::to_string(m_id));
     }
     Coroutine::Coroutine()
     {
@@ -56,10 +56,10 @@ namespace PangTao
         SetThis(this);
         if (getcontext(&m_context))
         {
-            PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER(), "getcontext error");
+            PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER, "getcontext error");
         }
         ++CoroutineCount;
-        PANGTAO_LOG_DEBUG(PANGTAO_ROOT_LOGGER(), "construct coroutine id: " + std::to_string(m_id));
+        PANGTAO_LOG_DEBUG(PANGTAO_ROOT_LOGGER, "construct coroutine id: " + std::to_string(m_id));
     }
     Coroutine::~Coroutine()
     {
@@ -79,7 +79,7 @@ namespace PangTao
                 SetThis(nullptr);
             }
         }
-        PANGTAO_LOG_DEBUG(PANGTAO_ROOT_LOGGER(), "delete coroutine id: " + std::to_string(m_id));
+        PANGTAO_LOG_DEBUG(PANGTAO_ROOT_LOGGER, "delete coroutine id: " + std::to_string(m_id));
     }
 
     void Coroutine::reset(std::function<void()> cb)
@@ -89,7 +89,7 @@ namespace PangTao
         m_cb = cb;
         if (getcontext(&m_context))
         {
-            PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER(), "getcontext error");
+            PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER, "getcontext error");
         }
         m_context.uc_link = nullptr;
         m_context.uc_stack.ss_sp = m_stack;
@@ -104,7 +104,7 @@ namespace PangTao
         m_state == EXEC;
         if (swapcontext(&(Scheduler::GetMainCoroutine()->m_context), &m_context))
         {
-            PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER(), "swapcontext error");
+            PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER, "swapcontext error");
         }
     }
     void Coroutine::swapOut()
@@ -112,7 +112,7 @@ namespace PangTao
         SetThis(Scheduler::GetMainCoroutine());
         if (swapcontext(&m_context, &(Scheduler::GetMainCoroutine()->m_context)))
         {
-            PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER(), "swapcontext error");
+            PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER, "swapcontext error");
         }
     }
     void Coroutine::call()
@@ -121,7 +121,7 @@ namespace PangTao
         m_state = EXEC;
         if (swapcontext(&(main_thread_coroutine->m_context), &m_context))
         {
-            PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER(), "swapcontext error");
+            PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER, "swapcontext error");
         }
     }
     void Coroutine::back()
@@ -130,7 +130,7 @@ namespace PangTao
         SetThis(main_thread_coroutine.get());
         if (swapcontext(&m_context, &(main_thread_coroutine->m_context)))
         {
-            PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER(), "swapcontext error");
+            PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER, "swapcontext error");
         }
     }
     uint64_t Coroutine::GetCoroutineId()
@@ -191,12 +191,12 @@ namespace PangTao
         catch (std::exception &e)
         {
             currentCoroutine->m_state = EXCEPT;
-            PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER(), "Coroutine main exception: " + std::string(e.what()));
+            PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER, "Coroutine main exception: " + std::string(e.what()));
         }
         catch (...)
         {
             currentCoroutine->m_state = EXCEPT;
-            PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER(), "Coroutine main exception");
+            PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER, "Coroutine main exception");
         }
         auto raw_ptr = currentCoroutine.get();
         currentCoroutine.reset();
@@ -217,12 +217,12 @@ namespace PangTao
         catch (std::exception &e)
         {
             currentCoroutine->m_state = EXCEPT;
-            PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER(), "Coroutine main exception: " + std::string(e.what()));
+            PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER, "Coroutine main exception: " + std::string(e.what()));
         }
         catch (...)
         {
             currentCoroutine->m_state = EXCEPT;
-            PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER(), "Coroutine main exception");
+            PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER, "Coroutine main exception");
         }
         auto raw_ptr = currentCoroutine.get();
         currentCoroutine.reset();

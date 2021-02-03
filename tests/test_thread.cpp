@@ -10,7 +10,7 @@ PangTao::Mutex s_mutex;
 
 void fun1()
 {
-    PangTao::PANGTAO_LOG_INFO(PangTao::PANGTAO_ROOT_LOGGER(), " name: " + PangTao::Thread::GetName() + " this.name: " + PangTao::Thread::GetThis()->getName() + " id: " + std::to_string(PangTao::GetThreadId()) + " this.id: " + std::to_string(PangTao::Thread::GetThis()->getId()));
+    PANGTAO_LOG_INFO(PANGTAO_ROOT_LOGGER, " name: " + PangTao::Thread::GetName() + " this.name: " + PangTao::Thread::GetThis()->getName() + " id: " + std::to_string(PangTao::GetThreadId()) + " this.id: " + std::to_string(PangTao::Thread::GetThis()->getId()));
     // for(int i = 0; i < 1000000;++i){
     //     PangTao::Mutex::Lock lock(s_mutex);
     //     ++count;
@@ -18,7 +18,7 @@ void fun1()
 }
 void fun2()
 {
-    PangTao::PANGTAO_LOG_INFO(PangTao::PANGTAO_ROOT_LOGGER(), " name: " + PangTao::Thread::GetName() + " this.name: " + PangTao::Thread::GetThis()->getName() + " id: " + std::to_string(PangTao::GetThreadId()) + " this.id: " + std::to_string(PangTao::Thread::GetThis()->getId()));
+    PANGTAO_LOG_INFO(PANGTAO_ROOT_LOGGER, " name: " + PangTao::Thread::GetName() + " this.name: " + PangTao::Thread::GetThis()->getName() + " id: " + std::to_string(PangTao::GetThreadId()) + " this.id: " + std::to_string(PangTao::Thread::GetThis()->getId()));
     // for(int i = 0; i < 1000000;++i){
     //     PangTao::Mutex::Lock lock(s_mutex);
     //     ++count;

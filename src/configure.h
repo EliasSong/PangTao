@@ -52,7 +52,7 @@ namespace PangTao
             }
             catch (std::exception &e)
             {
-                PANGTAO_LOG_ERROR(PangTao::LoggerManager::getInstance()->getRoot(),
+                PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER,
                                   "ConfigureVal::toString exception " + std::string(e.what()) + " convert: " + std::string(typeid(m_val).name()) + " to string");
             }
             return "";
@@ -66,7 +66,7 @@ namespace PangTao
             }
             catch (std::exception &e)
             {
-                PANGTAO_LOG_ERROR(PangTao::LoggerManager::getInstance()->getRoot(),
+                PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER,
                                   "ConfigureVal::toString exception " + std::string(e.what()) + " convert: string to " + std::string(typeid(m_val).name()));
             }
             return false;
@@ -132,11 +132,11 @@ namespace PangTao
             auto i = Lookup<T>(name);
             if (i)
             {
-                PANGTAO_LOG_INFO(PangTao::LoggerManager::getInstance()->getRoot(), "Lookup name = " + name + "existed");
+                PANGTAO_LOG_INFO(PANGTAO_ROOT_LOGGER, "Lookup name = " + name + "existed");
             }
             if (name.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ._0123456789") != std::string::npos)
             {
-                PANGTAO_LOG_ERROR(PangTao::LoggerManager::getInstance()->getRoot(), "Lookup name invalid " + name);
+                PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER, "Lookup name invalid " + name);
                 throw std::invalid_argument(name);
             }
             typename ConfigureVar<T>::ptr v(new ConfigureVar<T>(default_value, name, desc));

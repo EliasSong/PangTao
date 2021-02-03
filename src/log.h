@@ -13,6 +13,33 @@
 #include "util.h"
 #include "thread.h"
 
+#define PANGTAO_LOG_DEBUG(logger, s)                                                                                                                                          \
+    {PangTao::LogEvent::ptr event(new PangTao::LogEvent(logger, PangTao::LogLevel::DEBUG, __FILE__, __LINE__, 0, PangTao::GetThreadId(), PangTao::GetCoroutineId(), time(0))); \
+    event->getSS() << s;                                                                                                                                                     \
+    logger->log(event);}
+
+#define PANGTAO_LOG_INFO(logger, s)                                                                                                                                          \
+    {PangTao::LogEvent::ptr event(new PangTao::LogEvent(logger, PangTao::LogLevel::INFO, __FILE__, __LINE__, 0, PangTao::GetThreadId(), PangTao::GetCoroutineId(), time(0))); \
+    event->getSS() << s;                                                                                                                                                    \
+    logger->log(event);}
+
+#define PANGTAO_LOG_ERROR(logger, s)                                                                                                                                          \
+    {PangTao::LogEvent::ptr event(new PangTao::LogEvent(logger, PangTao::LogLevel::ERROR, __FILE__, __LINE__, 0, PangTao::GetThreadId(), PangTao::GetCoroutineId(), time(0))); \
+    event->getSS() << s;                                                                                                                                                     \
+    logger->log(event);}
+
+#define PANGTAO_LOG_WARN(logger, s)                                                                                                                                          \
+    {PangTao::LogEvent::ptr event(new PangTao::LogEvent(logger, PangTao::LogLevel::WARN, __FILE__, __LINE__, 0, PangTao::GetThreadId(), PangTao::GetCoroutineId(), time(0))); \
+    event->getSS() << s;                                                                                                                                                    \
+    logger->log(event);}
+
+#define PANGTAO_LOG_FATAL(logger, s)                                                                                                                                          \
+    {PangTao::LogEvent::ptr event(new PangTao::LogEvent(logger, PangTao::LogLevel::FATAL, __FILE__, __LINE__, 0, PangTao::GetThreadId(), PangTao::GetCoroutineId(), time(0))); \
+    event->getSS() << s;                                                                                                                                                     \
+    logger->log(event);}
+
+#define PANGTAO_ROOT_LOGGER PangTao::LoggerManager::getInstance()->getRoot()
+
 namespace PangTao
 {
     class Logger;
@@ -193,11 +220,11 @@ namespace PangTao
             m_root->setLevel(LogLevel::DEBUG);
         }
     };
-    void PANGTAO_LOG_DEBUG(Logger::ptr logger, std::string s);
-    void PANGTAO_LOG_INFO(Logger::ptr logger, std::string s);
-    void PANGTAO_LOG_WARN(Logger::ptr logger, std::string s);
-    void PANGTAO_LOG_ERROR(Logger::ptr logger, std::string s);
-    void PANGTAO_LOG_FATAL(Logger::ptr logger, std::string s);
-    Logger::ptr PANGTAO_ROOT_LOGGER();
+    //void PANGTAO_LOG_DEBUG(Logger::ptr logger, std::string s);
+    // void PANGTAO_LOG_INFO(Logger::ptr logger, std::string s);
+    // void PANGTAO_LOG_WARN(Logger::ptr logger, std::string s);
+    // void PANGTAO_LOG_ERROR(Logger::ptr logger, std::string s);
+    // void PANGTAO_LOG_FATAL(Logger::ptr logger, std::string s);
+    //Logger::ptr PANGTAO_ROOT_LOGGER();
 
 } // namespace PangTao

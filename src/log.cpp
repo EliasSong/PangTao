@@ -2,44 +2,44 @@
 namespace PangTao
 {
     
-    Logger::ptr PANGTAO_ROOT_LOGGER()
-    {
-        return LoggerManager::getInstance()->getRoot();
-    }
-    void PANGTAO_LOG_DEBUG(Logger::ptr logger, std::string s)
-    {
-        LogEvent::ptr event(new LogEvent(logger, LogLevel::DEBUG, __FILE__, __LINE__, 0, GetThreadId(), GetCoroutineId(), time(0)));
-        event->getSS() << s;
-        logger->log(event);
-    }
+    // Logger::ptr PANGTAO_ROOT_LOGGER()
+    // {
+    //     return LoggerManager::getInstance()->getRoot();
+    // }
+    // void PANGTAO_LOG_DEBUG(Logger::ptr logger, std::string s)
+    // {
+    //     LogEvent::ptr event(new LogEvent(logger, LogLevel::DEBUG, __FILE__, __LINE__, 0, GetThreadId(), GetCoroutineId(), time(0)));
+    //     event->getSS() << s;
+    //     logger->log(event);
+    // }
 
-    void PANGTAO_LOG_INFO(Logger::ptr logger, std::string s)
-    {
-        LogEvent::ptr event(new LogEvent(logger, LogLevel::INFO, __FILE__, __LINE__, 0, GetThreadId(), GetCoroutineId(), time(0)));
-        event->getSS() << s;
-        logger->log(event);
-    }
+    // void PANGTAO_LOG_INFO(Logger::ptr logger, std::string s)
+    // {
+    //     LogEvent::ptr event(new LogEvent(logger, LogLevel::INFO, __FILE__, __LINE__, 0, GetThreadId(), GetCoroutineId(), time(0)));
+    //     event->getSS() << s;
+    //     logger->log(event);
+    // }
 
-    void PANGTAO_LOG_WARN(Logger::ptr logger, std::string s)
-    {
-        LogEvent::ptr event(new LogEvent(logger, LogLevel::WARN, __FILE__, __LINE__, 0, GetThreadId(), GetCoroutineId(), time(0)));
-        event->getSS() << s;
-        logger->log(event);
-    }
+    // void PANGTAO_LOG_WARN(Logger::ptr logger, std::string s)
+    // {
+    //     LogEvent::ptr event(new LogEvent(logger, LogLevel::WARN, __FILE__, __LINE__, 0, GetThreadId(), GetCoroutineId(), time(0)));
+    //     event->getSS() << s;
+    //     logger->log(event);
+    // }
 
-    void PANGTAO_LOG_FATAL(Logger::ptr logger, std::string s)
-    {
-        LogEvent::ptr event(new LogEvent(logger, LogLevel::FATAL, __FILE__, __LINE__, 0, GetThreadId(), GetCoroutineId(), time(0)));
-        event->getSS() << s;
-        logger->log(event);
-    }
+    // void PANGTAO_LOG_FATAL(Logger::ptr logger, std::string s)
+    // {
+    //     LogEvent::ptr event(new LogEvent(logger, LogLevel::FATAL, __FILE__, __LINE__, 0, GetThreadId(), GetCoroutineId(), time(0)));
+    //     event->getSS() << s;
+    //     logger->log(event);
+    // }
 
-    void PANGTAO_LOG_ERROR(Logger::ptr logger, std::string s)
-    {
-        LogEvent::ptr event(new LogEvent(logger, LogLevel::ERROR, __FILE__, __LINE__, 0, GetThreadId(), GetCoroutineId(), time(0)));
-        event->getSS() << s;
-        logger->log(event);
-    }
+    // void PANGTAO_LOG_ERROR(Logger::ptr logger, std::string s)
+    // {
+    //     LogEvent::ptr event(new LogEvent(logger, LogLevel::ERROR, __FILE__, __LINE__, 0, GetThreadId(), GetCoroutineId(), time(0)));
+    //     event->getSS() << s;
+    //     logger->log(event);
+    // }
 
     const char *LogLevel::toString(LogLevel::Level level)
     {

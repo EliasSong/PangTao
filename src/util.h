@@ -6,11 +6,12 @@
 #include <string>
 #include <vector>
 #include "coroutine.h"
+#include <string>
 #define PANGTAO_ASSERT(x)                                                                            \
     if (!(x))                                                                                        \
     {                                                                                                \
-        PangTao::PANGTAO_LOG_ERROR(PangTao::PANGTAO_ROOT_LOGGER(), "ASSERTION: " + std::string(#x)); \
-        PangTao::PANGTAO_LOG_ERROR(PangTao::PANGTAO_ROOT_LOGGER(), PangTao::BacktraceToString(100)); \
+        PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER, "ASSERTION: " + std::string(#x)); \
+        PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER, PangTao::BacktraceToString(100)); \
     }
 
 namespace PangTao

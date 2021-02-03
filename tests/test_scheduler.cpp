@@ -4,7 +4,7 @@
 void test_scheduler()
 {
     static int count = 5;
-    PangTao::PANGTAO_LOG_INFO(PangTao::PANGTAO_ROOT_LOGGER(), "testfunc : "+std::to_string(count));
+    PANGTAO_LOG_INFO(PANGTAO_ROOT_LOGGER, "testfunc : "+std::to_string(count));
     sleep(1);
     if (count--)
     {

@@ -1,5 +1,4 @@
-#include "../src/scheduler.h"
-#include "../src/log.h"
+#include "../src/pangtao.h"
 
 void test_scheduler()
 {

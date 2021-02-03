@@ -1,6 +1,5 @@
 #include <iostream>
-#include "../src/util.h"
-#include "../src/log.h"
+#include "../src/pangtao.h"
 
 void test_assert(){
     //PangTao::PANGTAO_LOG_INFO(PangTao::PANGTAO_ROOT_LOGGER(),PangTao::BacktraceToString(10));

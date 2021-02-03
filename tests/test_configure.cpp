@@ -1,5 +1,5 @@
-#include "../src/configure.h"
-#include "../src/log.h"
+#include "../src/pangtao.h"
+
 #include <iostream>
 #include <unordered_map>
 

@@ -1,7 +1,6 @@
 #include <iostream>
 #include <stdio.h>
-#include "../src/log.h"
-#include "../src/util.h"
+#include "../src/pangtao.h"
 using namespace std;
 
 int main()

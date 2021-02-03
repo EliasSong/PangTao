@@ -1,6 +1,4 @@
-#include "../src/thread.h"
-#include "../src/util.h"
-#include "../src/log.h"
+#include "../src/pangtao.h"
 #include <iostream>
 #include <vector>
 

@@ -6,7 +6,7 @@ PangTao is a high-performance Linux server framework implemented in C++, it enca
 
 It contains the following modules:
 
-- Log
+- Log
 - Configuration
 - Thread
 - Coroutine

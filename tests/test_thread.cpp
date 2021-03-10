@@ -24,20 +24,25 @@ void fun2()
 }
 int main()
 {
-    std::vector<PangTao::Thread::ptr> thrs;
-    std::cout << "start testing......" << std::endl;
-
-    for (int i = 0; i < 200; ++i)
-    {
-        PangTao::Thread::ptr thr(new PangTao::Thread(&fun1, "name_" + std::to_string(i)));
-        PangTao::Thread::ptr thr2(new PangTao::Thread(&fun1, "name_" + std::to_string(i)));
-        thrs.push_back(thr);
-        thrs.push_back(thr2);
-    }
-    for (auto p : thrs)
-    {
-        p->join();
-    }
-    std::cout << count << std::endl;
+    // std::vector<PangTao::Thread::ptr> thrs;
+    // std::cout << "start testing......" << std::endl;
+    // PangTao::Thread::ptr thr(new PangTao::Thread("name_" + std::to_string(0),nullptr,nullptr,nullptr));
+    
+    // thr->join();
+    auto a = PangTao::ThreadPool::getInstance();
+    a->init(20);
+    // for (int i = 0; i < 200; ++i)
+    // {
+    //     PangTao::Thread::ptr thr(new PangTao::Thread(&fun1, "name_" + std::to_string(i)));
+    //     PangTao::Thread::ptr thr2(new PangTao::Thread(&fun1, "name_" + std::to_string(i)));
+    //     thrs.push_back(thr);
+    //     thrs.push_back(thr2);
+    // }
+    // for (auto p : thrs)
+    // {
+    //     p->join();
+    // }
+    // std::cout << count << std::endl;
+    pthread_exit(nullptr);
     return 0;
 }

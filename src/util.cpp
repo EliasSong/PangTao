@@ -9,8 +9,8 @@ namespace PangTao
     }
     uint32_t GetCoroutineId()
     {
-        return Coroutine::GetCoroutineId();
-        //return 0;
+        //return Coroutine::GetCoroutineId();
+        return 0;
     }
     void Backtrace(std::vector<std::string> &bt, int size, int skip)
     {

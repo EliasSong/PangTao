@@ -1,5 +1,4 @@
 #include "thread.h"
-
 #include "log.h"
 #include "util.h"
 namespace PangTao {
@@ -118,7 +117,7 @@ void *Thread::run(void *arg) {
 ThreadPool::ThreadPool() {
     std::cout << "===================Construct Pool=================="
               << std::endl;
-    threads.resize(minThreadNum, nullptr);
+    //threads.resize(minThreadNum, nullptr);
 }
 ThreadPool::~ThreadPool() {
     std::cout << "====================Destory Pool==================="

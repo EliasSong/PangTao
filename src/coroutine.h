@@ -1,55 +1,48 @@
-// #pragma once
-// #include <ucontext.h>
-// #include <memory>
-// #include <iostream>
-// #include <functional>
-// #include "thread.h"
-// #include "util.h"
+#pragma once
+#include <ucontext.h>
 
-// namespace PangTao
-// {
-//     class Scheduler;
-//     class Coroutine : public std::enable_shared_from_this<Coroutine>
-//     {
-//         friend class Scheduler;
+#include <functional>
+#include <iostream>
+#include <memory>
 
-//     public:
-//         typedef std::shared_ptr<Coroutine> ptr;
-//         Coroutine(std::function<void()> cb, size_t stackSize = 0,bool useCaller = false);
-//         Coroutine();
-//         ~Coroutine();
-//         void reset(std::function<void()> cb);
-//         void swapIn();
-//         void swapOut();
-//         void call();
-//         void back();
-//         uint64_t getId() const { return m_id; }
+#include "thread.h"
+#include "util.h"
 
-//         enum State
-//         {
-//             INIT,
-//             HOLD,
-//             EXEC,
-//             TERM,
-//             READY,
-//             EXCEPT
-//         };
-//         const State getState() const { return m_state; }
-//         static std::shared_ptr<Coroutine> GetThis();
-//         static void SetThis(Coroutine *coroutine);
-//         static void YieldToStatusReady();
-//         static void YieldToStatusHold();
-//         static uint64_t GetCoroutineCount();
-//         static uint64_t GetCoroutineId();
-//         static void Main();
-//         static void CallerMain();
+namespace PangTao {
+class Scheduler;  //协程调度器 设置为协程友元
+class Coroutine : public std::enable_shared_from_this<Coroutine> {
+    friend class Scheduler;
 
-//     private:
-//         uint64_t m_id = 0;
-//         uint32_t m_stackSize = 0;
-//         State m_state = INIT;
-//         ucontext_t m_context;
-//         void *m_stack = nullptr;
-//         std::function<void()> m_cb;
-//     };
-// } // namespace PangTao
+   public:
+    typedef std::shared_ptr<Coroutine> ptr;
+    Coroutine(std::function<void()> cb, size_t stackSize = 0,
+              bool useCaller = false);
+    Coroutine();
+    ~Coroutine();
+    void reset(std::function<void()> cb);  //重设协程方法
+    void swapIn();                         //运行当前协程
+    void swapOut();  //退出当前协程 并保存当前协程上下文
+    void call();//当前线程中
+    void back();
+    uint64_t getId() const { return m_id; }  //返回协程id
+    //协程状态 初始化 阻塞 运行 终止 就绪 异常
+    enum State { INIT, HOLD, EXEC, TERM, READY, EXCEPT };
+    const State getState() const { return m_state; }
+    static std::shared_ptr<Coroutine> GetThis();
+    static void SetThis(Coroutine *coroutine);  //设置当前线程中的协程
+    static void YieldToStatusReady();  //退出当前协程并设置协程状态为ready
+    static void YieldToStatusHold();  //退出当前协程并设置协程状态为阻塞
+    static uint64_t GetCoroutineCount();  //返回当前协程数
+    static uint64_t GetCoroutineId();     //返回当前运行协程id
+    static void Main();                   //协程入口函数
+    static void CallerMain();
+
+   private:
+    uint64_t m_id = 0;           //协程id
+    uint32_t m_stackSize = 0;    //协程内存空间大小
+    State m_state = INIT;        //协程状态
+    ucontext_t m_context;        //协程上下文
+    void *m_stack = nullptr;     //指向协程内存空间的指针
+    std::function<void()> m_cb;  //协程方法
+};
+}  // namespace PangTao

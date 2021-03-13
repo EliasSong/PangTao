@@ -9,7 +9,7 @@ namespace PangTao
     {
         PANGTAO_ASSERT(threadNum > 0);
         m_name = name;
-        if (useCaller)
+        if (useCaller)//如果包含了调用该调度器的线程
         {
             Coroutine::GetThis();
             --threadNum;
@@ -66,11 +66,13 @@ namespace PangTao
         if (m_mainCoroutine && m_threadCount == 0 && (m_mainCoroutine->getState() == Coroutine::State::TERM || m_mainCoroutine->getState() == Coroutine::State::INIT))
         {
             m_stopping = true;
+            //如果正在停止调度器过程中 则返回
             if (stopping())
             {
                 return;
             }
         }
+        //如果useCaller 则保证stop由
         if (m_mainThreadId != -1)
         {
             PANGTAO_ASSERT(GetThis() == this);
@@ -80,6 +82,7 @@ namespace PangTao
             PANGTAO_ASSERT(GetThis() != this);
         }
         m_stopping = true;
+        //通知调度器
         for (int i = 0; i < m_threadCount; ++i)
         {
             tickle();
@@ -122,6 +125,7 @@ namespace PangTao
         CoroutineInThread ft;
         while (true)
         {
+            //std::cout<<"==========================run=========================="<<std::endl;
             ft.reset();
             bool tickleMe = false;
             bool isActive = false;
@@ -212,6 +216,7 @@ namespace PangTao
                     --m_activeThreadCount;
                     continue;
                 }
+                //std::cout<<"===================="<<idleCoroutine->getState()<<"================="<<std::endl;
                 if (idleCoroutine->getState() == Coroutine::State::TERM)
                 {
                     PANGTAO_LOG_INFO(PANGTAO_ROOT_LOGGER, "idel term");

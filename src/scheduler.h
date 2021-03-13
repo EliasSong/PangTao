@@ -16,8 +16,8 @@ namespace PangTao
     public:
         typedef std::shared_ptr<Scheduler> ptr;
         std::vector<pid_t> m_threadIds;//协程调度器中的线程id
-        pid_t m_mainThreadId = 0;//当前正在运行的线程id
-        Coroutine::ptr m_mainCoroutine = nullptr;
+        pid_t m_mainThreadId = 0;//主线程id 如果useCaller 即包含了创建调度器的线程 设置该线程为主线程
+        Coroutine::ptr m_mainCoroutine = nullptr;//主协程 如果useCaller 即包含了创建调度器的线程 设置该协程为主协程
         size_t m_threadCount = 0;
         std::atomic<size_t> m_activeThreadCount = {0};//活跃的线程数
         std::atomic<size_t> m_idleThreadCount = {0};//执行空闲协程的线程数
@@ -51,7 +51,7 @@ namespace PangTao
                 Mutex::Lock lock(m_mutex);
                 while (begin != end)
                 {
-                    tickleFlag = scheduleWithoutLock(&*begin) || tickleFlag;
+                    tickleFlag = scheduleWithoutLock(&*begin,-1) || tickleFlag;
                     begin++;
                 }
             }

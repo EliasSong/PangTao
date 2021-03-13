@@ -12,7 +12,7 @@ namespace PangTao
     static std::atomic<uint64_t> CoroutineId = {0};
     static std::atomic<uint64_t> CoroutineCount = {0};
     static thread_local Coroutine *main_coroutine = nullptr; //主协程
-    static thread_local Coroutine::ptr main_thread_coroutine;
+    static thread_local Coroutine::ptr main_thread_coroutine;//指定线程中的协程
     class MallocStackAllocator
     {
     public:

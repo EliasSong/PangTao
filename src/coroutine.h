@@ -21,9 +21,9 @@ class Coroutine : public std::enable_shared_from_this<Coroutine> {
     ~Coroutine();
     void reset(std::function<void()> cb);  //重设协程方法
     void swapIn();                         //运行当前协程
-    void swapOut();  //退出当前协程 并保存当前协程上下文
-    void call();//当前线程中
-    void back();
+    void swapOut();  //挂起当前协程 并保存当前协程上下文
+    void call();     //将调用线程包含进去时运行协程
+    void back();     //将调用线程包含进去时挂起协程
     uint64_t getId() const { return m_id; }  //返回协程id
     //协程状态 初始化 阻塞 运行 终止 就绪 异常
     enum State { INIT, HOLD, EXEC, TERM, READY, EXCEPT };
@@ -35,7 +35,7 @@ class Coroutine : public std::enable_shared_from_this<Coroutine> {
     static uint64_t GetCoroutineCount();  //返回当前协程数
     static uint64_t GetCoroutineId();     //返回当前运行协程id
     static void Main();                   //协程入口函数
-    static void CallerMain();
+    static void CallerMain();  //协程使用指定协程调用的入口函数
 
    private:
     uint64_t m_id = 0;           //协程id

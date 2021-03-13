@@ -10,7 +10,7 @@
 
 namespace PangTao {
 
-static sylar::Logger::ptr g_logger = SYLAR_LOG_NAME("system");
+//static sylar::Logger::ptr g_logger = SYLAR_LOG_NAME("system");
 
 enum EpollCtlOp {
 };
@@ -66,7 +66,7 @@ IOManager::FdContext::EventContext& IOManager::FdContext::getContext(IOManager::
         case IOManager::WRITE:
             return write;
         default:
-            SYLAR_ASSERT2(false, "getContext");
+            PANGTAO_ASSERT(false);
     }
     throw std::invalid_argument("getContext invalid event");
 }
@@ -81,7 +81,7 @@ void IOManager::FdContext::triggerEvent(IOManager::Event event) {
     //SYLAR_LOG_INFO(g_logger) << "fd=" << fd
     //    << " triggerEvent event=" << event
     //    << " events=" << events;
-    SYLAR_ASSERT(events & event);
+    PANGTAO_ASSERT(events & event);
     //if(SYLAR_UNLIKELY(!(event & event))) {
     //    return;
     //}
@@ -97,12 +97,12 @@ void IOManager::FdContext::triggerEvent(IOManager::Event event) {
 }
 
 IOManager::IOManager(size_t threads, bool use_caller, const std::string& name)
-    :Scheduler(threads, use_caller, name) {
+    :Scheduler(name,threads, use_caller) {
     m_epfd = epoll_create(5000);
-    SYLAR_ASSERT(m_epfd > 0);
+    PANGTAO_ASSERT(m_epfd > 0);
 
     int rt = pipe(m_tickleFds);
-    SYLAR_ASSERT(!rt);
+    PANGTAO_ASSERT(!rt);
 
     epoll_event event;
     memset(&event, 0, sizeof(epoll_event));
@@ -110,10 +110,10 @@ IOManager::IOManager(size_t threads, bool use_caller, const std::string& name)
     event.data.fd = m_tickleFds[0];
 
     rt = fcntl(m_tickleFds[0], F_SETFL, O_NONBLOCK);
-    SYLAR_ASSERT(!rt);
+    PANGTAO_ASSERT(!rt);
 
     rt = epoll_ctl(m_epfd, EPOLL_CTL_ADD, m_tickleFds[0], &event);
-    SYLAR_ASSERT(!rt);
+    PANGTAO_ASSERT(!rt);
 
     contextResize(32);
 
@@ -158,11 +158,10 @@ int IOManager::addEvent(int fd, Event event, std::function<void()> cb) {
     }
 
     FdContext::MutexType::Lock lock2(fd_ctx->mutex);
-    if(SYLAR_UNLIKELY(fd_ctx->events & event)) {
-        SYLAR_LOG_ERROR(g_logger) << "addEvent assert fd=" << fd
-                    << " event=" << (EPOLL_EVENTS)event
-                    << " fd_ctx.event=" << (EPOLL_EVENTS)fd_ctx->events;
-        SYLAR_ASSERT(!(fd_ctx->events & event));
+    
+    if(fd_ctx->events & event) {
+        PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER,"addevent error");
+        PANGTAO_ASSERT(!(fd_ctx->events & event));
     }
 
     int op = fd_ctx->events ? EPOLL_CTL_MOD : EPOLL_CTL_ADD;
@@ -172,17 +171,18 @@ int IOManager::addEvent(int fd, Event event, std::function<void()> cb) {
 
     int rt = epoll_ctl(m_epfd, op, fd, &epevent);
     if(rt) {
-        SYLAR_LOG_ERROR(g_logger) << "epoll_ctl(" << m_epfd << ", "
-            << (EpollCtlOp)op << ", " << fd << ", " << (EPOLL_EVENTS)epevent.events << "):"
-            << rt << " (" << errno << ") (" << strerror(errno) << ") fd_ctx->events="
-            << (EPOLL_EVENTS)fd_ctx->events;
+        PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER,"epollctl error");
+        // SYLAR_LOG_ERROR(g_logger) << "epoll_ctl(" << m_epfd << ", "
+        //     << (EpollCtlOp)op << ", " << fd << ", " << (EPOLL_EVENTS)epevent.events << "):"
+        //     << rt << " (" << errno << ") (" << strerror(errno) << ") fd_ctx->events="
+        //     << (EPOLL_EVENTS)fd_ctx->events;
         return -1;
     }
 
     ++m_pendingEventCount;
     fd_ctx->events = (Event)(fd_ctx->events | event);
     FdContext::EventContext& event_ctx = fd_ctx->getContext(event);
-    SYLAR_ASSERT(!event_ctx.scheduler
+    PANGTAO_ASSERT(!event_ctx.scheduler
                 && !event_ctx.fiber
                 && !event_ctx.cb);
 
@@ -190,9 +190,8 @@ int IOManager::addEvent(int fd, Event event, std::function<void()> cb) {
     if(cb) {
         event_ctx.cb.swap(cb);
     } else {
-        event_ctx.fiber = Fiber::GetThis();
-        SYLAR_ASSERT2(event_ctx.fiber->getState() == Fiber::EXEC
-                      ,"state=" << event_ctx.fiber->getState());
+        event_ctx.fiber = Coroutine::GetThis();
+        PANGTAO_ASSERT(event_ctx.fiber->getState() == Coroutine::EXEC);
     }
     return 0;
 }
@@ -206,7 +205,7 @@ bool IOManager::delEvent(int fd, Event event) {
     lock.unlock();
 
     FdContext::MutexType::Lock lock2(fd_ctx->mutex);
-    if(SYLAR_UNLIKELY(!(fd_ctx->events & event))) {
+    if(!(fd_ctx->events & event)) {
         return false;
     }
 
@@ -218,9 +217,10 @@ bool IOManager::delEvent(int fd, Event event) {
 
     int rt = epoll_ctl(m_epfd, op, fd, &epevent);
     if(rt) {
-        SYLAR_LOG_ERROR(g_logger) << "epoll_ctl(" << m_epfd << ", "
-            << (EpollCtlOp)op << ", " << fd << ", " << (EPOLL_EVENTS)epevent.events << "):"
-            << rt << " (" << errno << ") (" << strerror(errno) << ")";
+        PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER,"epolldel error");
+        // SYLAR_LOG_ERROR(g_logger) << "epoll_ctl(" << m_epfd << ", "
+        //     << (EpollCtlOp)op << ", " << fd << ", " << (EPOLL_EVENTS)epevent.events << "):"
+        //     << rt << " (" << errno << ") (" << strerror(errno) << ")";
         return false;
     }
 
@@ -240,7 +240,7 @@ bool IOManager::cancelEvent(int fd, Event event) {
     lock.unlock();
 
     FdContext::MutexType::Lock lock2(fd_ctx->mutex);
-    if(SYLAR_UNLIKELY(!(fd_ctx->events & event))) {
+    if(!(fd_ctx->events & event)) {
         return false;
     }
 
@@ -252,9 +252,10 @@ bool IOManager::cancelEvent(int fd, Event event) {
 
     int rt = epoll_ctl(m_epfd, op, fd, &epevent);
     if(rt) {
-        SYLAR_LOG_ERROR(g_logger) << "epoll_ctl(" << m_epfd << ", "
-            << (EpollCtlOp)op << ", " << fd << ", " << (EPOLL_EVENTS)epevent.events << "):"
-            << rt << " (" << errno << ") (" << strerror(errno) << ")";
+        PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER,"epollctl error");
+        // SYLAR_LOG_ERROR(g_logger) << "epoll_ctl(" << m_epfd << ", "
+        //     << (EpollCtlOp)op << ", " << fd << ", " << (EPOLL_EVENTS)epevent.events << "):"
+        //     << rt << " (" << errno << ") (" << strerror(errno) << ")";
         return false;
     }
 
@@ -283,9 +284,10 @@ bool IOManager::cancelAll(int fd) {
 
     int rt = epoll_ctl(m_epfd, op, fd, &epevent);
     if(rt) {
-        SYLAR_LOG_ERROR(g_logger) << "epoll_ctl(" << m_epfd << ", "
-            << (EpollCtlOp)op << ", " << fd << ", " << (EPOLL_EVENTS)epevent.events << "):"
-            << rt << " (" << errno << ") (" << strerror(errno) << ")";
+        PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER,"epollctl error");
+        // SYLAR_LOG_ERROR(g_logger) << "epoll_ctl(" << m_epfd << ", "
+        //     << (EpollCtlOp)op << ", " << fd << ", " << (EPOLL_EVENTS)epevent.events << "):"
+        //     << rt << " (" << errno << ") (" << strerror(errno) << ")";
         return false;
     }
 
@@ -298,7 +300,7 @@ bool IOManager::cancelAll(int fd) {
         --m_pendingEventCount;
     }
 
-    SYLAR_ASSERT(fd_ctx->events == 0);
+    PANGTAO_ASSERT(fd_ctx->events == 0);
     return true;
 }
 
@@ -307,11 +309,11 @@ IOManager* IOManager::GetThis() {
 }
 
 void IOManager::tickle() {
-    if(!hasIdleThreads()) {
-        return;
-    }
-    int rt = write(m_tickleFds[1], "T", 1);
-    SYLAR_ASSERT(rt == 1);
+    // if(!hasIdleThreads()) {
+    //     return;
+    // }
+    int rt = write(m_tickleFds[1], "T", 1);//
+    PANGTAO_ASSERT(rt == 1);
 }
 
 bool IOManager::stopping(uint64_t& timeout) {
@@ -328,7 +330,7 @@ bool IOManager::stopping() {
 }
 
 void IOManager::idle() {
-    SYLAR_LOG_DEBUG(g_logger) << "idle";
+    //SYLAR_LOG_DEBUG(g_logger) << "idle";
     const uint64_t MAX_EVNETS = 256;
     epoll_event* events = new epoll_event[MAX_EVNETS]();
     std::shared_ptr<epoll_event> shared_events(events, [](epoll_event* ptr){
@@ -337,9 +339,9 @@ void IOManager::idle() {
 
     while(true) {
         uint64_t next_timeout = 0;
-        if(SYLAR_UNLIKELY(stopping(next_timeout))) {
-            SYLAR_LOG_INFO(g_logger) << "name=" << getName()
-                                     << " idle stopping exit";
+        if(stopping(next_timeout)) {
+            // SYLAR_LOG_INFO(g_logger) << "name=" << getName()
+            //                          << " idle stopping exit";
             break;
         }
 
@@ -359,7 +361,7 @@ void IOManager::idle() {
             }
         } while(true);
 
-        std::vector<std::function<void()> > cbs;
+        std::vector<std::function<void()>> cbs;
         listExpiredCb(cbs);
         if(!cbs.empty()) {
             //SYLAR_LOG_DEBUG(g_logger) << "on timer cbs.size=" << cbs.size();
@@ -402,9 +404,9 @@ void IOManager::idle() {
 
             int rt2 = epoll_ctl(m_epfd, op, fd_ctx->fd, &event);
             if(rt2) {
-                SYLAR_LOG_ERROR(g_logger) << "epoll_ctl(" << m_epfd << ", "
-                    << (EpollCtlOp)op << ", " << fd_ctx->fd << ", " << (EPOLL_EVENTS)event.events << "):"
-                    << rt2 << " (" << errno << ") (" << strerror(errno) << ")";
+                // SYLAR_LOG_ERROR(g_logger) << "epoll_ctl(" << m_epfd << ", "
+                //     << (EpollCtlOp)op << ", " << fd_ctx->fd << ", " << (EPOLL_EVENTS)event.events << "):"
+                //     << rt2 << " (" << errno << ") (" << strerror(errno) << ")";
                 continue;
             }
 
@@ -420,7 +422,7 @@ void IOManager::idle() {
             }
         }
 
-        Fiber::ptr cur = Fiber::GetThis();
+        Coroutine::ptr cur = Coroutine::GetThis();
         auto raw_ptr = cur.get();
         cur.reset();
 

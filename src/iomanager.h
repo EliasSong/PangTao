@@ -4,34 +4,27 @@
 
 namespace PangTao {
 
-/**
- * @brief 基于Epoll的IO协程调度器
- */
+// IO协程调度器 epoll实现
 class IOManager : public Scheduler, public TimerManager {
-public:
+   public:
     typedef std::shared_ptr<IOManager> ptr;
     typedef RWMutex RWMutexType;
 
-    /**
-     * @brief IO事件
-     */
+    // IO事件
     enum Event {
-        /// 无事件
-        NONE    = 0x0,
-        /// 读事件(EPOLLIN)
-        READ    = 0x1,
-        /// 写事件(EPOLLOUT)
-        WRITE   = 0x4,
+        // 无事件
+        NONE = 0x0,
+        //读事件
+        READ = 0x1,
+        // 写事件
+        WRITE = 0x4,
     };
-private:
-    /**
-     * @brief Socket事件上线文类
-     */
+
+   private:
+    // Socket事件上线文类
     struct FdContext {
         typedef Mutex MutexType;
-        /**
-         * @brief 事件上线文类
-         */
+        //事件上下文
         struct EventContext {
             /// 事件执行的调度器
             Scheduler* scheduler = nullptr;
@@ -41,23 +34,13 @@ private:
             std::function<void()> cb;
         };
 
-        /**
-         * @brief 获取事件上下文类
-         * @param[in] event 事件类型
-         * @return 返回对应事件的上线文
-         */
+        //获取事件上下文类
         EventContext& getContext(Event event);
 
-        /**
-         * @brief 重置事件上下文
-         * @param[in, out] ctx 待重置的上下文类
-         */
+         //重置传入事件上下文
         void resetContext(EventContext& ctx);
 
-        /**
-         * @brief 触发事件
-         * @param[in] event 事件类型
-         */
+        //事件触发方法
         void triggerEvent(Event event);
 
         /// 读事件上下文
@@ -68,82 +51,53 @@ private:
         int fd = 0;
         /// 当前的事件
         Event events = NONE;
-        /// 事件的Mutex
+        /// 事件的锁
         MutexType mutex;
     };
 
-public:
-    /**
-     * @brief 构造函数
-     * @param[in] threads 线程数量
-     * @param[in] use_caller 是否将调用线程包含进去
-     * @param[in] name 调度器的名称
-     */
-    IOManager(size_t threads = 1, bool use_caller = true, const std::string& name = "");
+   public:
+    //构造函数 threads 线程数量 use_caller 是否将调用线程包含进去name 调度器的名称
+    IOManager(size_t threads = 1, bool use_caller = true,
+              const std::string& name = "");
 
-    /**
-     * @brief 析构函数
-     */
     ~IOManager();
 
-    /**
-     * @brief 添加事件
-     * @param[in] fd socket句柄
-     * @param[in] event 事件类型
-     * @param[in] cb 事件回调函数
-     * @return 添加成功返回0,失败返回-1
-     */
+    //添加事件到调度器 fd socket句柄 event 事件类型 cb 事件回调函数
     int addEvent(int fd, Event event, std::function<void()> cb = nullptr);
 
-    /**
-     * @brief 删除事件
-     * @param[in] fd socket句柄
-     * @param[in] event 事件类型
-     * @attention 不会触发事件
-     */
+    //删除事件fd socket句柄 event 事件类型
+
     bool delEvent(int fd, Event event);
 
-    /**
-     * @brief 取消事件
-     * @param[in] fd socket句柄
-     * @param[in] event 事件类型
-     * @attention 如果事件存在则触发事件
-     */
+    //取消指定事件
     bool cancelEvent(int fd, Event event);
 
-    /**
-     * @brief 取消所有事件
-     * @param[in] fd socket句柄
-     */
+    //取消所有事件
     bool cancelAll(int fd);
 
-    /**
-     * @brief 返回当前的IOManager
-     */
+    //返回当前IO调度器指针
     static IOManager* GetThis();
-protected:
+
+   protected:
+   //重载通知调度器函数
     void tickle() override;
+    //重载停止过程函数
     bool stopping() override;
+    //重载空闲协程
     void idle() override;
     void onTimerInsertedAtFront() override;
 
-    /**
-     * @brief 重置socket句柄上下文的容器大小
-     * @param[in] size 容量大小
-     */
+    //重置socket句柄上下文的容器大小
     void contextResize(size_t size);
 
-    /**
-     * @brief 判断是否可以停止
-     * @param[out] timeout 最近要出发的定时器事件间隔
-     * @return 返回是否可以停止
-     */
+    //判断是否可以停止 timeout 最近要出发的定时器事件间隔
     bool stopping(uint64_t& timeout);
-private:
-    /// epoll 文件句柄
-    int m_epfd = 0;
-    /// pipe 文件句柄
-    int m_tickleFds[2];
+
+   private:
+    
+    int m_epfd = 0;// epoll 文件句柄
+    
+    int m_tickleFds[2];// 连接调度器和通知事件
     /// 当前等待执行的事件数量
     std::atomic<size_t> m_pendingEventCount = {0};
     /// IOManager的Mutex
@@ -152,6 +106,4 @@ private:
     std::vector<FdContext*> m_fdContexts;
 };
 
-}
-
-
+}  // namespace PangTao

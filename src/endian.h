@@ -28,19 +28,23 @@ typename std::enable_if<sizeof(T) == sizeof(uint16_t), T>::type byteswap(
 #endif
 
 #if PANGTAO_BYTE_ORDER == PANGTAO_BIG_ENDIAN
+//只在小端机上进行交换
 template<class T>
 T byteswapOnLittleEndian(T t){
     return t;
 }
+//只在大端机上进行交换
 template<class T>
 T byteswapOnBigEndian(T t){
     return byteswap(t);
 }
 #else
+//只在小端机上进行交换
 template<class T>
 T byteswapOnLittleEndian(T t){
     return byteswap(t);
 }
+//只在大端机上进行交换
 template<class T>
 T byteswapOnBigEndian(T t){
     return t;

@@ -12,7 +12,8 @@ void test_socket() {
     //        break;
     //    }
     //}
-    PangTao::IPAddress::ptr addr = PangTao::Address::LookupAnyIPAddress("www.baidu.com");
+    PangTao::IPAddress::ptr addr = PangTao::Address::LookupAnyIPAddress("eliassong.cn:8080");
+    //addr->setPort(8080);
     if(addr) {
         PANGTAO_LOG_INFO( PANGTAO_ROOT_LOGGER,"get address: " + addr->toString());
     } else {
@@ -21,7 +22,8 @@ void test_socket() {
     }
 
     PangTao::Socket::ptr sock = PangTao::Socket::CreateTCP(addr);
-    addr->setPort(80);
+   
+   // std::cout<<addr->getPort()<<std::endl;
     PANGTAO_LOG_INFO( PANGTAO_ROOT_LOGGER,"addr =  " + addr->toString());
     if(!sock->connect(addr)) {
         PANGTAO_LOG_INFO( PANGTAO_ROOT_LOGGER," connect failed" + addr->toString());

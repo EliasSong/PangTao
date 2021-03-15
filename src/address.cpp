@@ -253,6 +253,7 @@ IPAddress::ptr IPAddress::Create(const char* address, uint32_t port) {
 IPv4Address::ptr IPv4Address::Create(const char* address, uint32_t port) {
     IPv4Address::ptr ret(new IPv4Address);
     ret->m_addr.sin_port = byteswapOnLittleEndian(port);
+    //ret->m_addr.sin_port = htons(port);
     int result = inet_pton(AF_INET, address, &ret->m_addr.sin_addr);
     if (result <= 0) {
         PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER, "ipv4 address create error");
@@ -307,6 +308,7 @@ uint32_t IPv4Address::getPort() const {
 }
 void IPv4Address::setPort(uint32_t p) {
     m_addr.sin_port = byteswapOnLittleEndian(p);
+    //m_addr.sin_port = htons(p);
 }
 IPv6Address::IPv6Address() {
     bzero(&m_addr, sizeof(m_addr));
@@ -315,6 +317,7 @@ IPv6Address::IPv6Address() {
 IPv6Address::ptr IPv6Address::Create(const char* address, uint32_t port) {
     IPv6Address::ptr ret(new IPv6Address);
     ret->m_addr.sin6_port = byteswapOnLittleEndian(port);
+    //ret->m_addr.sin6_port = htons(port);
     int result = inet_pton(AF_INET6, address, &ret->m_addr.sin6_addr);
     if (result <= 0) {
         PANGTAO_LOG_ERROR(PANGTAO_ROOT_LOGGER, "ipv6 address create error");

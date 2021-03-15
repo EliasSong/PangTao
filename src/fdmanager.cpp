@@ -1,9 +1,5 @@
 #include "fdmanager.h"
-//#include "hook.h"
-#include <sys/socket.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
+
 namespace PangTao {
 FdManager* FdManager::instance = nullptr;
 FdCtx::FdCtx(int fd)
